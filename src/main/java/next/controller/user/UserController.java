@@ -1,5 +1,6 @@
 package next.controller.user;
 
+import javax.annotation.Resource;
 import javax.servlet.http.HttpSession;
 
 import next.controller.UserSessionUtils;
@@ -21,7 +22,8 @@ import core.web.argumentresolver.LoginUser;
 public class UserController {
 	private static final Logger log = LoggerFactory.getLogger(UserController.class);
 
-	private UserDao userDao = UserDao.getInstance();
+    @Resource
+	private UserDao userDao;
 
 	@RequestMapping(value = "", method = RequestMethod.GET)
     public String index(@LoginUser User loginUser, Model model) throws Exception {

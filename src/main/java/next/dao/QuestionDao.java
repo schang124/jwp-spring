@@ -7,42 +7,41 @@ import java.sql.SQLException;
 import java.sql.Timestamp;
 import java.util.List;
 
-import core.jdbc.JdbcTemplate;
-import core.jdbc.KeyHolder;
-import core.jdbc.PreparedStatementCreator;
-import core.jdbc.RowMapper;
 import next.model.Question;
+import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.jdbc.core.JdbcTemplate;
+import org.springframework.jdbc.core.PreparedStatementCreator;
+import org.springframework.jdbc.core.RowMapper;
+import org.springframework.jdbc.support.GeneratedKeyHolder;
+import org.springframework.jdbc.support.KeyHolder;
+import org.springframework.stereotype.Repository;
 
+import javax.annotation.Resource;
+
+@Repository
 public class QuestionDao {
+	@Autowired
 	private static QuestionDao questionDao;
-	private JdbcTemplate jdbcTemplate = JdbcTemplate.getInstance();
-	
-	private QuestionDao() {}
-	
-	public static QuestionDao getInstance() {
-		if (questionDao == null) {
-			questionDao = new QuestionDao();
-		}
-		return questionDao;
-	}
-	
+
+	@Resource
+	private JdbcTemplate jdbcTemplate;
+
     public Question insert(Question question) {
         String sql = "INSERT INTO QUESTIONS (writer, title, contents, createdDate) VALUES (?, ?, ?, ?)";
-        PreparedStatementCreator psc = new PreparedStatementCreator() {
+		KeyHolder keyholder = new GeneratedKeyHolder();
+		jdbcTemplate.update(new PreparedStatementCreator() {
 			@Override
-			public PreparedStatement createPreparedStatement(Connection con) throws SQLException {
-				PreparedStatement pstmt = con.prepareStatement(sql);
-				pstmt.setString(1, question.getWriter());
-				pstmt.setString(2, question.getTitle());
-				pstmt.setString(3, question.getContents());
-				pstmt.setTimestamp(4, new Timestamp(question.getTimeFromCreateDate()));
-				return pstmt;
+			public PreparedStatement createPreparedStatement(Connection connection) throws SQLException {
+				PreparedStatement ps = connection.prepareStatement(sql);
+				ps.setString(1, question.getWriter());
+				ps.setString(2, question.getTitle());
+				ps.setString(3, question.getContents());
+				ps.setTimestamp(4, new Timestamp(question.getTimeFromCreateDate()));
+				return ps;
 			}
-		};
+		}, keyholder);
         
-		KeyHolder keyHolder = new KeyHolder();
-        jdbcTemplate.update(psc, keyHolder);
-        return findById(keyHolder.getId());
+        return findById((Long)keyholder.getKey());
     }
 	
 	public List<Question> findAll() {
@@ -50,14 +49,14 @@ public class QuestionDao {
 				+ "order by questionId desc";
 		
 		RowMapper<Question> rm = new RowMapper<Question>() {
+
 			@Override
-			public Question mapRow(ResultSet rs) throws SQLException {
-				return new Question(rs.getLong("questionId"),
-						rs.getString("writer"), rs.getString("title"), null,
-						rs.getTimestamp("createdDate"),
-						rs.getInt("countOfAnswer"));
+			public Question mapRow(ResultSet resultSet, int i) throws SQLException {
+				return new Question(resultSet.getLong("questionId"),
+						resultSet.getString("writer"), resultSet.getString("title"), null,
+						resultSet.getTimestamp("createdDate"),
+						resultSet.getInt("countOfAnswer"));
 			}
-			
 		};
 		
 		return jdbcTemplate.query(sql, rm);
@@ -69,12 +68,12 @@ public class QuestionDao {
 		
 		RowMapper<Question> rm = new RowMapper<Question>() {
 			@Override
-			public Question mapRow(ResultSet rs) throws SQLException {
-				return new Question(rs.getLong("questionId"),
-						rs.getString("writer"), rs.getString("title"),
-						rs.getString("contents"),
-						rs.getTimestamp("createdDate"),
-						rs.getInt("countOfAnswer"));
+			public Question mapRow(ResultSet resultSet, int i) throws SQLException {
+				return new Question(resultSet.getLong("questionId"),
+						resultSet.getString("writer"), resultSet.getString("title"),
+						resultSet.getString("contents"),
+						resultSet.getTimestamp("createdDate"),
+						resultSet.getInt("countOfAnswer"));
 			}
 		};
 		

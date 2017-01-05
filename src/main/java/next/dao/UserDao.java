@@ -5,21 +5,20 @@ import java.sql.SQLException;
 import java.util.List;
 
 import next.model.User;
-import core.jdbc.JdbcTemplate;
-import core.jdbc.RowMapper;
+import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.jdbc.core.JdbcTemplate;
+import org.springframework.jdbc.core.RowMapper;
+import org.springframework.stereotype.Repository;
 
+import javax.annotation.Resource;
+
+@Repository
 public class UserDao {
+    @Autowired
 	private static UserDao userDao;
-	private JdbcTemplate jdbcTemplate = JdbcTemplate.getInstance();
-	
-	private UserDao() {}
-	
-	public static UserDao getInstance() {
-		if (userDao == null) {
-			userDao = new UserDao();
-		}
-		return userDao;
-	}
+
+    @Resource
+	private JdbcTemplate jdbcTemplate;
 	
     public void insert(User user) {
         String sql = "INSERT INTO USERS VALUES (?, ?, ?, ?)";
@@ -34,11 +33,11 @@ public class UserDao {
         
         RowMapper<User> rm = new RowMapper<User>() {
             @Override
-            public User mapRow(ResultSet rs) throws SQLException {
-                return new User(rs.getString("userId"), 
-                        rs.getString("password"), 
-                        rs.getString("name"),
-                        rs.getString("email"));
+            public User mapRow(ResultSet resultSet, int i) throws SQLException {
+                return new User(resultSet.getString("userId"),
+                        resultSet.getString("password"),
+                        resultSet.getString("name"),
+                        resultSet.getString("email"));
             }
         };
         
@@ -50,11 +49,11 @@ public class UserDao {
         
         RowMapper<User> rm = new RowMapper<User>() {
             @Override
-            public User mapRow(ResultSet rs) throws SQLException {
-                return new User(rs.getString("userId"), 
-                        rs.getString("password"), 
-                        rs.getString("name"),
-                        rs.getString("email"));
+            public User mapRow(ResultSet resultSet, int i) throws SQLException {
+                return new User(resultSet.getString("userId"),
+                        resultSet.getString("password"),
+                        resultSet.getString("name"),
+                        resultSet.getString("email"));
             }
         };
         
